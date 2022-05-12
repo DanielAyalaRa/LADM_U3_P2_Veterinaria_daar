@@ -17,19 +17,15 @@
         <item>Perro</item>
         <item>Gato</item>
         <item>Conejo</item>
-        <item>Tortuga</item>
-        <item>Gallina</item>
-        <item>Vaca</item>
-        <item>Oveja</item>
         <item>Ave</item>
         <item>Pez</item>
     </string-array>
 
     <string-array name="buscarProPor">
-        <item>CURP</item>
-        <item>NOMBRE</item>
-        <item>TELEFONO</item>
-        <item>EDAD</item>
+        <item>curp</item>
+        <item>nombre</item>
+        <item>telefono</item>
+        <item>edad</item>
     </string-array>
 
     <string-array name="buscarMascota">

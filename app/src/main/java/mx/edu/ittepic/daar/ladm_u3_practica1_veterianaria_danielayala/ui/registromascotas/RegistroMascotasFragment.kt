@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.firebase.firestore.FirebaseFirestore
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.R
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.clases.Mascota
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.clases.Propietario
@@ -23,9 +24,12 @@ import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.ui.actuali
 class RegistroMascotasFragment : Fragment() {
 
     private var _binding: FragmentRegistroMascotasBinding? = null
+    var baseRemota = FirebaseFirestore.getInstance()
+    var coleccion1 = "propietario"
+    var coleccion2 = "mascota"
+    var datalista = ArrayList<String>()
+    var listaId = ArrayList<String>()
 
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val binding get() = _binding!!
 
     var listaIDs = ArrayList<String>()
@@ -50,24 +54,47 @@ class RegistroMascotasFragment : Fragment() {
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinner.adapter = adapter
         }
-        //mostrarDatosEnListView()
+
+        baseRemota
+            .collection(coleccion2)
+            .addSnapshotListener { query, error ->
+                if (error != null) {
+                    //SI HUBO UNA EXCEPCIÓN
+                    mensaje2(error.message!!)
+                    return@addSnapshotListener
+                }
+                datalista.clear()
+                listaId.clear()
+                for (documento in query!!) {
+                    var cadena =
+                        "Nombre: ${documento.getString("nombre")} -- Raza: ${
+                            documento.getString(
+                                "raza"
+                            )
+                        }\nPropietario: ${documento.getString("curp")}"
+                    datalista.add(cadena)
+
+                    listaId.add(documento.id.toString())
+                }
+
+                binding.listaMascotas.adapter = ArrayAdapter<String>(
+                    requireContext(),
+                    android.R.layout.simple_list_item_1,
+                    datalista
+                )
+                binding.listaMascotas.setOnItemClickListener { adapterView, view, indice, l ->
+                    dialogoEliminarActualiza(indice)
+                }
+            }
 
         binding.insertarMascota.setOnClickListener {
             var id = binding.txtcurp.text.toString()
             if (id == "") {
-                AlertDialog.Builder(requireContext())
-                    .setTitle("ATENCIÓN")
-                    .setMessage("Debe agregar el propietario de la mascota")
-                    .setNeutralButton("ACEPTAR") {d,i -> }
-                    .show()
+                mensaje("ATENCIÓN","Debe agregar el propietario de la mascota")
                 return@setOnClickListener
             } else {
                 if (binding.txtnombreMascota.text.toString() == "") {
-                    AlertDialog.Builder(requireContext())
-                        .setTitle("ATENCIÓN")
-                        .setMessage("Debe agregar el nombre de la mascota")
-                        .setNeutralButton("ACEPTAR") {d,i -> }
-                        .show()
+                    mensaje("ATENCIÓN","Debe agregar el nombre de la mascota")
                     return@setOnClickListener
                 } else {
                     var mascota = Mascota(requireContext())
@@ -76,24 +103,13 @@ class RegistroMascotasFragment : Fragment() {
                     mascota.raza = binding.SpRaza.selectedItem.toString()
                     mascota.curp = binding.txtcurp.text.toString()
 
-                    /*var resultado = mascota.insertar()
-                    if(resultado) {
-                        Toast.makeText(requireContext(),"SE INSERTO CON EXITO", Toast.LENGTH_LONG)
-                            .show()
-                        mostrarDatosEnListView()
-                        limpiarCampos()
-                    } else {
-                        AlertDialog.Builder(requireContext())
-                            .setTitle("ERROR")
-                            .setMessage("NO SE PUDO INSERTAR")
-                            .show()
-                    }*/
+                    mascota.insertar()
                 }
             }
         }
         binding.btnbuscar.setOnClickListener {
             var buscar = binding.txtbuscarPropietario.text.toString()
-            //mostrarPropietario(buscar)
+            mostrarPropietario(buscar)
         }
         binding.btnLimpiar.setOnClickListener {
             limpiarCampos()
@@ -106,82 +122,73 @@ class RegistroMascotasFragment : Fragment() {
         _binding = null
     }
 
-    /*fun mostrarPropietario(busqueda:String) {
-        var listaFiltro = Propietario(requireContext()).buscarPropietario(busqueda)
-        var listaData = ArrayList<String>()
-        var DataPropietario = Propietario(requireContext())
+    private fun dialogoEliminarActualiza(posicion :Int) {
+        var idSeleccionar = listaId.get(posicion)
+        var propietario = Propietario(requireContext())
 
-        listaIDs.clear()
-        (0..listaFiltro.size-1).forEach {
-            val persona = listaFiltro.get(it)
-            DataPropietario.curp = persona.curp
-            DataPropietario.nombre = persona.nombre
-            DataPropietario.telefono = persona.telefono
-            DataPropietario.edad = persona.edad
-
-            listaData.add(DataPropietario.nombrePropietario())
-            listaIDs.add(persona.curp)
-        }
-
-        binding.listaPropietario.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,listaData)
-        try {
-            binding.listaPropietario.setOnItemClickListener { adapterView, view, indice, l ->
-                val curpLista = listaIDs.get(indice)
-                val propietario = Propietario(requireContext()).mostrarPropietario(curpLista)
-
-                AlertDialog.Builder(requireContext())
-                    .setTitle("ATENCIÓN")
-                    .setMessage("¿Qué deseas agregar al propietario: ${propietario.nombre}, \nTelefono: ${propietario.telefono}, \n" +
-                            "CUPR: ${propietario.curp}?")
-                    .setPositiveButton("Agregar") {d,i ->
-                        binding.txtcurp.setText(propietario.curp)
-                        binding.txtbuscarPropietario.setText("")
-                    }
-                    .setNeutralButton("Cerrar") {d,i -> }
-                    .show()
+        AlertDialog.Builder(requireContext())
+            .setTitle("Atención!!")
+            .setMessage("¿QUÉ DESEAS HACER CON\n${datalista.get(posicion)}?")
+            .setPositiveButton("ELIMINAR") {d,i ->
+                propietario.eliminar(idSeleccionar)
             }
-        } catch (err: SQLiteException) {
-            AlertDialog.Builder(requireContext())
-                .setTitle("ERROR")
-                .setMessage(err.message)
-                .setNeutralButton("Cerrar") {d,i -> }
-                .show()
-        }
+            .setNeutralButton("ACTUALIZAR") {d,i ->
+                val otraVentana = Intent(requireActivity(), ActualizarMascotas::class.java)
+                otraVentana.putExtra("mascotaActualizar", idSeleccionar)
+                otraVentana.putExtra("mascotaCurp", propietario.curp)
+                startActivity(otraVentana)
+            }
+            .setNegativeButton("CANCELAR") {d,i -> }
+            .show()
     }
 
-    fun mostrarDatosEnListView() {
-        var listaMascotas = Mascota(requireContext()).mostrarTodos()
-        var nombreMascota = ArrayList<String>()
+    fun mostrarPropietario(buscar:String) {
+        var datalista2 = ArrayList<String>()
+        var listaId2 = ArrayList<String>()
 
-        listaIDs.clear()
-        (0..listaMascotas.size-1).forEach {
-            val al = listaMascotas.get(it)
-            nombreMascota.add(al.nombreMascota())
-            listaIDs.add(al.id_mascota)
-        }
-
-        binding.listaMascotas.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,nombreMascota)
-        binding.listaMascotas.setOnItemClickListener { adapterView, view, indice, l ->
-            val idLista = listaIDs.get(indice)
-            val pet = Mascota(requireContext()).mostrarMascota(idLista)
-
-            AlertDialog.Builder(requireContext())
-                .setTitle("ATENCIÓN")
-                .setMessage("¿Qué deseas hacer con la \nMascota: ${pet.nombre} \n" +
-                        "Raza: ${pet.raza} \nPropietario: ${pet.curp}?")
-                .setNegativeButton("Eliminar") {d,i ->
-                    pet.eliminar()
-                    mostrarDatosEnListView()
+        baseRemota.collection(coleccion1)
+            .whereEqualTo("nombre", buscar)
+            .addSnapshotListener { query, error ->
+                if (error != null) {
+                    //SI HUBO UNA EXCEPCIÓN
+                    mensaje2(error.message!!)
+                    return@addSnapshotListener
                 }
-                .setPositiveButton("Actualizar") {d,i ->
-                    val otraVentana = Intent(requireActivity(), ActualizarMascotas::class.java)
-                    otraVentana.putExtra("mascotaActualizar", pet.id_mascota)
-                    startActivity(otraVentana)
+                datalista2.clear()
+                listaId2.clear()
+                for (documento in query!!) {
+                    var cadena =
+                        "Curp: ${documento.getString("curp")} -- Nombre: ${documento.getString("nombre")} -- Telefono: ${
+                            documento.getString(
+                                "telefono"
+                            )
+                        }-- Edad: ${documento.getLong("edad")}"
+                    datalista2.add(cadena)
+
+                    listaId2.add(documento.id.toString())
                 }
-                .setNeutralButton("Cerrar") {d,i -> }
-                .show()
-        }
-    }*/
+
+                binding.listaPropietario.adapter = ArrayAdapter<String>(
+                    requireContext(),
+                    android.R.layout.simple_list_item_1,
+                    datalista2
+                )
+                binding.listaPropietario.setOnItemClickListener { adapterView, view, indice, l ->
+                    var idSeleccionar = listaId2.get(indice)
+
+                    baseRemota
+                        .collection(coleccion1)
+                        .document(idSeleccionar)
+                        .get()
+                        .addOnSuccessListener {
+                            binding.txtcurp.setText(it.getString("curp"))
+                        }
+                        .addOnFailureListener {
+                            mensaje2("ERROR: ${it.message!!}")
+                        }
+                }
+            }
+    }
 
     fun limpiarCampos() {
         binding.txtbuscarPropietario.setText("")
@@ -189,8 +196,17 @@ class RegistroMascotasFragment : Fragment() {
         binding.txtnombreMascota.setText("")
     }
 
-    override fun onResume() {
-        super.onResume()
-        //mostrarDatosEnListView()
+    private fun mensaje(titulo : String,error : String) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(titulo)
+            .setMessage(error)
+            .setNeutralButton("ACEPTAR") {d,i -> }
+            .show()
+    }
+
+    private fun mensaje2(error : String) {
+        AlertDialog.Builder(requireContext())
+            .setMessage(error)
+            .show()
     }
 }

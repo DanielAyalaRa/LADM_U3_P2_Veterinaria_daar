@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import com.google.firebase.firestore.FirebaseFirestore
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.R
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.clases.Mascota
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.clases.Propietario
@@ -17,7 +18,12 @@ import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.databindin
 class ActualizarMascotas : AppCompatActivity() {
 
     lateinit var binding: ActivityActualizarMascotasBinding
+    var baseRemota = FirebaseFirestore.getInstance()
+    var coleccion1 = "propietario"
     var id_mascota = ""
+    var curp = ""
+    var datalista = ArrayList<String>()
+    var listaId = ArrayList<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,9 +31,7 @@ class ActualizarMascotas : AppCompatActivity() {
         setContentView(binding.root)
 
         id_mascota = this.intent.extras!!.getString("mascotaActualizar")!!
-
-        /*var mascota = Mascota(this).mostrarMascota(id_mascota)
-        var propietario = Propietario(this).mostrarPropietario(mascota.curp)
+        curp = this.intent.extras!!.getString("mascotaCurp")!!
 
         val spinner: Spinner = binding.SpRaza
         ArrayAdapter.createFromResource(
@@ -38,53 +42,71 @@ class ActualizarMascotas : AppCompatActivity() {
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinner.adapter = adapter
         }
+        var id = mostrarFiltro(curp)
 
-        binding.txtcurp.setText(propietario.curp)
-        binding.txtnombrePropietario.setText(propietario.nombre)
-        binding.txttelefono.setText(propietario.telefono)
-        binding.txtedadPropietario.setText(propietario.edad.toString())
-        binding.txtid.setText(mascota.id_mascota)
-        binding.txtnombreMascota.setText(mascota.nombre)
-        binding.txtcurpMascota.setText(mascota.curp)
+        /*baseRemota
+            .collection(coleccion1)
+            .document(id)
+            .get()
+            .addOnSuccessListener {
+                binding.txtcurp.setText(it.getString("curp").toString())
+                binding.txtnombrePropietario.setText(it.getString("nombre").toString())
+                binding.txttelefono.setText(it.getString("telefono").toString())
+                binding.txtedadPropietario.setText(it.getLong("edad").toString())
+            }
+            .addOnFailureListener {
+                mensaje("ERROR: ${it.message!!}")
+            }*/
+
+        baseRemota
+            .collection("mascota")
+            .document(id_mascota)
+            .get() //Obtiene 1 documento
+            .addOnSuccessListener {
+                binding.txtcurpMascota.setText(it.getString("curp"))
+                binding.txtnombreMascota.setText(it.getString("nombre"))
+            }
+            .addOnFailureListener {
+                mensaje("ERROR: ${it.message!!}")
+            }
 
         binding.actualizar.setOnClickListener {
-            var mascota = Mascota(this)
+            var propietario = Propietario(this)
 
             try {
-                mascota.id_mascota = binding.txtid.text.toString()
-                mascota.nombre = binding.txtnombreMascota.text.toString()
-                mascota.raza = binding.SpRaza.selectedItem.toString()
-                mascota.curp = binding.txtcurpMascota.text.toString()
+                propietario.curp = binding.txtcurp.text.toString()
+                propietario.nombre = binding.txtnombrePropietario.text.toString()
+                propietario.telefono = binding.txttelefono.text.toString()
+                propietario.edad = binding.txtedadPropietario.text.toString().toInt()
             } catch (e:Exception) {
-                AlertDialog.Builder(this)
-                    .setTitle("ATENCIÓN")
-                    .setMessage("HAY CAMPOS VACIOS")
-                    .show()
+                mensaje("HAY CAMPOS VACIOS")
                 return@setOnClickListener
             }
 
-            var respuesta = mascota.actualizar()
-
-            if (respuesta) {
-                Toast.makeText(this, "SE ACTUALIZO CON EXITO", Toast.LENGTH_LONG)
-                    .show()
-                limpiarCampos()
-                // quitar teclado virtual
-                val view = this.currentFocus
-                view?.let { v ->
-                    val imm =
-                        getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-                    imm?.hideSoftInputFromWindow(v.windowToken, 0)
+            try {
+                if (!(propietario.curp == "" || propietario.nombre == "" || propietario.telefono == "" || propietario.edad.toString() == "")) {
+                    propietario.actualizar(id_mascota)
+                    limpiarCampos()
+                    finish()
                 }
-                finish()
-            } else {
-                AlertDialog.Builder(this)
-                    .setTitle("ERROR")
-                    .setMessage("NO SE PUDO ACTUALIZAR")
-                    .show()
-                finish()
+            }  catch(e:Exception) {
+                mensaje("HAY CAMPOS VACIOS")
             }
-        }*/
+        }
+    }
+
+    private fun mensaje2(titulo : String,error : String) {
+        AlertDialog.Builder(this)
+            .setTitle(titulo)
+            .setMessage(error)
+            .setNeutralButton("ACEPTAR") {d,i -> }
+            .show()
+    }
+
+    private fun mensaje(error : String) {
+        AlertDialog.Builder(this)
+            .setMessage(error)
+            .show()
     }
 
     fun limpiarCampos() {
@@ -92,5 +114,25 @@ class ActualizarMascotas : AppCompatActivity() {
         binding.txtnombrePropietario.setText("")
         binding.txttelefono.setText("")
         binding.txtedadPropietario.setText("")
+    }
+
+    fun mostrarFiltro(busqueda:String) : String {
+        var cadena = ""
+            baseRemota.collection(coleccion1)
+                .whereEqualTo("curp", busqueda)
+                .addSnapshotListener { query, error ->
+                    if (error != null) {
+                        //SI HUBO UNA EXCEPCIÓN
+                        mensaje(error.message!!)
+                        return@addSnapshotListener
+                    }
+                    datalista.clear()
+                    listaId.clear()
+                    for (documento in query!!) {
+                        cadena = documento.id.toString()
+                    }
+                    mensaje(cadena)
+                }
+        return  cadena
     }
 }

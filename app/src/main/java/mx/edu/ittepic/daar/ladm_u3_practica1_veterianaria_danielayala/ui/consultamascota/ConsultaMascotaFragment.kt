@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import com.google.firebase.firestore.FirebaseFirestore
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.R
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.clases.Mascota
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.clases.Propietario
@@ -20,8 +21,10 @@ class ConsultaMascotaFragment : Fragment() {
     private var _binding: ConsultaMascotaFragmentBinding? = null
 
     private val binding get() = _binding!!
-
-    var listaIDs = ArrayList<String>()
+    var baseRemota = FirebaseFirestore.getInstance()
+    var coleccion2 = "mascota"
+    var datalista = ArrayList<String>()
+    var listaId = ArrayList<String>()
 
     override fun onCreateView(
         inflater: LayoutInflater,

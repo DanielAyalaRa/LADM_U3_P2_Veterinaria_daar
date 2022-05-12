@@ -26,8 +26,6 @@ class ConsultaPropietarioFragment : Fragment() {
     var datalista = ArrayList<String>()
     var listaId = ArrayList<String>()
 
-    var listaIDs = ArrayList<String>()
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -49,15 +47,13 @@ class ConsultaPropietarioFragment : Fragment() {
             spinner.adapter = adapter
         }
 
-
-
         binding.btnBuscar.setOnClickListener {
             var busqueda = binding.txtbuscar.text.toString()
 
             if (busqueda == "") {
-                //mostrarDatosEnListView()
+                mostrarTodos()
             } else {
-                //mostrarPropietariosFiltro(busqueda,binding.SpConsultasPropietario.selectedItem.toString())
+                 mostrarFiltro(busqueda,binding.SpConsultasPropietario.selectedItem.toString())
             }
         }
 
@@ -96,26 +92,68 @@ class ConsultaPropietarioFragment : Fragment() {
         binding.listaConsultaPropietario.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,datalista)
     }
 
-    /*
-    fun mostrarPropietariosFiltro(busqueda:String, filtro:String) {
-        var listaFiltro = Propietario(requireContext()).mostrarFiltro(busqueda,filtro)
-        var listaData = ArrayList<String>()
-        var DataPropietario = Propietario(requireContext())
+    fun mostrarFiltro(busqueda:String,filtro:String) {
+        if (filtro != "edad") {
+            baseRemota.collection(coleccion1)
+                .whereEqualTo("${filtro}", busqueda)
+                .addSnapshotListener { query, error ->
+                    if (error != null) {
+                        //SI HUBO UNA EXCEPCIÓN
+                        mensaje2(error.message!!)
+                        return@addSnapshotListener
+                    }
+                    datalista.clear()
+                    listaId.clear()
+                    for (documento in query!!) {
+                        var cadena =
+                            "Curp: ${documento.getString("curp")} -- Nombre: ${documento.getString("nombre")} -- Telefono: ${
+                                documento.getString(
+                                    "telefono"
+                                )
+                            }-- Edad: ${documento.getLong("edad")}"
+                        datalista.add(cadena)
 
-        listaIDs.clear()
-        (0..listaFiltro.size-1).forEach {
-            val persona = listaFiltro.get(it)
-            DataPropietario.curp = persona.curp
-            DataPropietario.nombre = persona.nombre
-            DataPropietario.telefono = persona.telefono
-            DataPropietario.edad = persona.edad
+                        listaId.add(documento.id.toString())
+                    }
 
-            listaData.add(DataPropietario.contenido())
-            listaIDs.add(persona.curp)
+                    binding.listaConsultaPropietario.adapter = ArrayAdapter<String>(
+                        requireContext(),
+                        android.R.layout.simple_list_item_1,
+                        datalista
+                    )
+                }
+        } else if (filtro == "edad") {
+            baseRemota.collection(coleccion1)
+                .whereEqualTo("${filtro}", busqueda.toInt())
+                .addSnapshotListener { query, error ->
+                    if (error != null) {
+                        //SI HUBO UNA EXCEPCIÓN
+                        mensaje2(error.message!!)
+                        return@addSnapshotListener
+                    }
+                    datalista.clear()
+                    listaId.clear()
+                    for (documento in query!!) {
+                        var cadena =
+                            "Curp: ${documento.getString("curp")} -- Nombre: ${documento.getString("nombre")} -- Telefono: ${
+                                documento.getString(
+                                    "telefono"
+                                )
+                            }-- Edad: ${documento.getLong("edad")}"
+                        datalista.add(cadena)
+
+                        listaId.add(documento.id.toString())
+                    }
+
+                    binding.listaConsultaPropietario.adapter = ArrayAdapter<String>(
+                        requireContext(),
+                        android.R.layout.simple_list_item_1,
+                        datalista
+                    )
+                }
         }
 
-        binding.listaConsultaPropietario.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,listaData)
-    }*/
+    }
 
     private fun mensaje2(error : String) {
         AlertDialog.Builder(requireContext())

@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import com.google.firebase.firestore.FirebaseFirestore
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.clases.Propietario
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.databinding.ActivityActualizarMainBinding
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.databinding.FragmentRegistroPropietarioBinding
@@ -13,6 +14,7 @@ import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.databindin
 class ActualizarMainActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityActualizarMainBinding
+    var baseRemota = FirebaseFirestore.getInstance()
     var idSeleccion = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,13 +22,21 @@ class ActualizarMainActivity : AppCompatActivity() {
         binding = ActivityActualizarMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        idSeleccion = this.intent.extras!!.getString("propietarioActualizar")!!
-        var propietario = Propietario(this).mostrarPropietario(idSeleccion)
+        idSeleccion = intent.extras!!.getString("propietarioActualizar")!!
 
-        binding.txtcurp.setText(propietario.curp)
-        binding.txtnombrePropietario.setText(propietario.nombre)
-        binding.txttelefono.setText(propietario.telefono)
-        binding.txtedadPropietario.setText(propietario.edad.toString())
+        baseRemota
+            .collection("propietario")
+            .document(idSeleccion)
+            .get() //Obtiene 1 documento
+            .addOnSuccessListener {
+                binding.txtcurp.setText(it.getString("curp"))
+                binding.txtnombrePropietario.setText(it.getString("nombre"))
+                binding.txttelefono.setText(it.getString("telefono"))
+                binding.txtedadPropietario.setText(it.getLong("edad").toString())
+            }
+            .addOnFailureListener {
+                mensaje("ERROR: ${it.message!!}")
+            }
 
         binding.actualizar.setOnClickListener {
             var propietario = Propietario(this)
@@ -43,17 +53,10 @@ class ActualizarMainActivity : AppCompatActivity() {
                     .show()
                 return@setOnClickListener
             }
-            val regex =
-                "^[A-Z]{1}[AEIOU]{1}[A-Z]{2}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|1[0-9]|2[0-9]|3[0-1])[HM]{1}(AS|BC|BS|CC|CS|CH|CL|CM|DF|DG|GT|GR|HG|JC|MC|MN|MS|NT|NL|OC|PL|QT|QR|SP|SL|SR|TC|TS|TL|VZ|YN|ZS|NE)[B-DF-HJ-NP-TV-Z]{3}[0-9A-Z]{1}[0-9]{1}$".toRegex()
+
             try {
                 if (!(propietario.curp == "" || propietario.nombre == "" || propietario.telefono == "" || propietario.edad.toString() == "")) {
-                    if (!regex.containsMatchIn(propietario.curp)) {
-                        AlertDialog.Builder(this)
-                            .setTitle("CURP")
-                            .setMessage("NO CUMPLE CON LOS PARAMETROS DE UNA CURP")
-                            .setNeutralButton("ACEPTAR") { d, i -> }
-                            .show()
-                    } else if (!(propietario.telefono.length == 10)) {
+                    if (!(propietario.telefono.length == 10)) {
                         AlertDialog.Builder(this)
                             .setTitle("TELEFONO")
                             .setMessage("EL NÚMERO DEBEN SER 10 DIGITOS")
@@ -62,6 +65,7 @@ class ActualizarMainActivity : AppCompatActivity() {
                     } else {
                         propietario.actualizar(idSeleccion)
                         limpiarCampos()
+                        finish()
                     }
                 }
             }  catch(e:Exception) {
@@ -71,6 +75,12 @@ class ActualizarMainActivity : AppCompatActivity() {
                     .show()
             }
         }
+    }
+
+    private fun mensaje(error : String) {
+        AlertDialog.Builder(this)
+            .setMessage(error)
+            .show()
     }
 
     fun limpiarCampos() {
