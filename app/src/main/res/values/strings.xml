@@ -29,9 +29,9 @@
     </string-array>
 
     <string-array name="buscarMascota">
-        <item>NOMBRE MASCOTA</item>
-        <item>PROPIETARIO(curp)</item>
-        <item>RAZA</item>
+        <item>nombre</item>
+        <item>curp</item>
+        <item>raza</item>
     </string-array>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

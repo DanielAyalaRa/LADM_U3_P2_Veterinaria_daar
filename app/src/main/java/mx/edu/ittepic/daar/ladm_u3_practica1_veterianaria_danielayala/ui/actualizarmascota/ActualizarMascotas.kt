@@ -22,8 +22,6 @@ class ActualizarMascotas : AppCompatActivity() {
     var coleccion1 = "propietario"
     var id_mascota = ""
     var curp = ""
-    var datalista = ArrayList<String>()
-    var listaId = ArrayList<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,7 +29,6 @@ class ActualizarMascotas : AppCompatActivity() {
         setContentView(binding.root)
 
         id_mascota = this.intent.extras!!.getString("mascotaActualizar")!!
-        curp = this.intent.extras!!.getString("mascotaCurp")!!
 
         val spinner: Spinner = binding.SpRaza
         ArrayAdapter.createFromResource(
@@ -42,50 +39,35 @@ class ActualizarMascotas : AppCompatActivity() {
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinner.adapter = adapter
         }
-        var id = mostrarFiltro(curp)
-
-        /*baseRemota
-            .collection(coleccion1)
-            .document(id)
-            .get()
-            .addOnSuccessListener {
-                binding.txtcurp.setText(it.getString("curp").toString())
-                binding.txtnombrePropietario.setText(it.getString("nombre").toString())
-                binding.txttelefono.setText(it.getString("telefono").toString())
-                binding.txtedadPropietario.setText(it.getLong("edad").toString())
-            }
-            .addOnFailureListener {
-                mensaje("ERROR: ${it.message!!}")
-            }*/
 
         baseRemota
             .collection("mascota")
             .document(id_mascota)
-            .get() //Obtiene 1 documento
+            .get()
             .addOnSuccessListener {
                 binding.txtcurpMascota.setText(it.getString("curp"))
                 binding.txtnombreMascota.setText(it.getString("nombre"))
+                mostrarPropietario(it.getString("curp").toString())
             }
             .addOnFailureListener {
                 mensaje("ERROR: ${it.message!!}")
             }
 
         binding.actualizar.setOnClickListener {
-            var propietario = Propietario(this)
+            var mascota = Mascota(this)
 
             try {
-                propietario.curp = binding.txtcurp.text.toString()
-                propietario.nombre = binding.txtnombrePropietario.text.toString()
-                propietario.telefono = binding.txttelefono.text.toString()
-                propietario.edad = binding.txtedadPropietario.text.toString().toInt()
+                mascota.nombre = binding.txtnombreMascota.text.toString()
+                mascota.raza = binding.SpRaza.selectedItem.toString()
+                mascota.curp = binding.txtcurp.text.toString()
             } catch (e:Exception) {
                 mensaje("HAY CAMPOS VACIOS")
                 return@setOnClickListener
             }
 
             try {
-                if (!(propietario.curp == "" || propietario.nombre == "" || propietario.telefono == "" || propietario.edad.toString() == "")) {
-                    propietario.actualizar(id_mascota)
+                if (!(mascota.curp == "" || mascota.nombre == "")) {
+                    mascota.actualizar(id_mascota)
                     limpiarCampos()
                     finish()
                 }
@@ -93,6 +75,24 @@ class ActualizarMascotas : AppCompatActivity() {
                 mensaje("HAY CAMPOS VACIOS")
             }
         }
+    }
+
+    private fun mostrarPropietario(curp : String) {
+        baseRemota
+            .collection(coleccion1)
+            .whereEqualTo("curp", curp)
+            .addSnapshotListener { query, error ->
+                if (error != null) {
+                    mensaje(error.message!!)
+                    return@addSnapshotListener
+                }
+                for (documento in query!!) {
+                    binding.txtcurp.setText(documento.getString("curp").toString())
+                    binding.txtnombrePropietario.setText(documento.getString("nombre").toString())
+                    binding.txttelefono.setText(documento.getString("telefono").toString())
+                    binding.txtedadPropietario.setText(documento.getLong("edad").toString())
+                }
+            }
     }
 
     private fun mensaje2(titulo : String,error : String) {
@@ -114,25 +114,5 @@ class ActualizarMascotas : AppCompatActivity() {
         binding.txtnombrePropietario.setText("")
         binding.txttelefono.setText("")
         binding.txtedadPropietario.setText("")
-    }
-
-    fun mostrarFiltro(busqueda:String) : String {
-        var cadena = ""
-            baseRemota.collection(coleccion1)
-                .whereEqualTo("curp", busqueda)
-                .addSnapshotListener { query, error ->
-                    if (error != null) {
-                        //SI HUBO UNA EXCEPCIÓN
-                        mensaje(error.message!!)
-                        return@addSnapshotListener
-                    }
-                    datalista.clear()
-                    listaId.clear()
-                    for (documento in query!!) {
-                        cadena = documento.id.toString()
-                    }
-                    mensaje(cadena)
-                }
-        return  cadena
     }
 }

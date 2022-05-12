@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import androidx.appcompat.app.AlertDialog
 import com.google.firebase.firestore.FirebaseFirestore
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.R
 import mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.clases.Mascota
@@ -47,19 +48,69 @@ class ConsultaMascotaFragment : Fragment() {
             spinner.adapter = adapter
         }
 
-        //mostrarDatosEnListView()
+        baseRemota
+            .collection(coleccion2)
+            .addSnapshotListener { query, error ->
+                if (error != null) {
+                    //SI HUBO UNA EXCEPCIÓN
+                    mensaje2(error.message!!)
+                    return@addSnapshotListener
+                }
+                datalista.clear()
+                listaId.clear()
+                for (documento in query!!) {
+                    var cadena =
+                        "Nombre: ${documento.getString("nombre")} -- Raza: ${
+                            documento.getString(
+                                "raza"
+                            )
+                        }\nPropietario: ${documento.getString("curp")}"
+                    datalista.add(cadena)
+
+                    listaId.add(documento.id.toString())
+                }
+            }
+
+        binding.lista.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,datalista)
 
         binding.btnBuscar.setOnClickListener {
             var busqueda = binding.buscarMascota.text.toString()
 
-            if (busqueda == "") {
-               // mostrarDatosEnListView()
-            } else {
-                //mostrarMascotaFiltro(busqueda,binding.SpConsultasMascotas.selectedItem.toString())
-            }
+            mostrarFiltro(busqueda,binding.SpConsultasMascotas.selectedItem.toString())
         }
 
         return  root
+    }
+
+    fun mostrarFiltro(busqueda:String,filtro:String) {
+            baseRemota.collection(coleccion2)
+                .whereEqualTo("${filtro}", busqueda)
+                .addSnapshotListener { query, error ->
+                    if (error != null) {
+                        //SI HUBO UNA EXCEPCIÓN
+                        mensaje2(error.message!!)
+                        return@addSnapshotListener
+                    }
+                    datalista.clear()
+                    listaId.clear()
+                    for (documento in query!!) {
+                        var cadena =
+                            "Nombre: ${documento.getString("nombre")} -- Raza: ${
+                                documento.getString(
+                                    "raza"
+                                )
+                            }\nPropietario: ${documento.getString("curp")}"
+                        datalista.add(cadena)
+
+                        listaId.add(documento.id.toString())
+                    }
+
+                    binding.lista.adapter = ArrayAdapter<String>(
+                        requireContext(),
+                        android.R.layout.simple_list_item_1,
+                        datalista
+                    )
+                }
     }
 
     override fun onDestroyView() {
@@ -67,44 +118,10 @@ class ConsultaMascotaFragment : Fragment() {
         _binding = null
     }
 
-    /*fun mostrarDatosEnListView() {
-        var listaFiltro = Mascota(requireContext()).mostrarTodos()
-        var listaData = ArrayList<String>()
-        var Data = Mascota(requireContext())
-
-        listaIDs.clear()
-        (0..listaFiltro.size-1).forEach {
-            val pets = listaFiltro.get(it)
-            Data.curp = pets.id_mascota
-            Data.nombre = pets.nombre
-            Data.raza = pets.raza
-            Data.curp = pets.curp
-
-            listaData.add(Data.nombreMascota())
-            listaIDs.add(pets.id_mascota)
-        }
-
-        binding.lista.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,listaData)
+    private fun mensaje2(error : String) {
+        AlertDialog.Builder(requireContext())
+            .setMessage(error)
+            .show()
     }
-
-    fun mostrarMascotaFiltro(busqueda:String, filtro:String) {
-        var listaFiltro = Mascota(requireContext()).buscarFiltroMascota(busqueda,filtro)
-        var listaData = ArrayList<String>()
-        var Data = Mascota(requireContext())
-
-        listaIDs.clear()
-        (0..listaFiltro.size-1).forEach {
-            val pets = listaFiltro.get(it)
-            Data.curp = pets.id_mascota
-            Data.nombre = pets.nombre
-            Data.raza = pets.raza
-            Data.curp = pets.curp
-
-            listaData.add(Data.nombreMascota())
-            listaIDs.add(pets.id_mascota)
-        }
-
-        binding.lista.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,listaData)
-    }*/
 
 }

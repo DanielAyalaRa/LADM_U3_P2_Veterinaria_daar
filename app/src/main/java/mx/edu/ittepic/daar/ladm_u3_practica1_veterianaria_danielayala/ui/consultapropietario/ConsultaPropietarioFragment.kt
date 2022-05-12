@@ -47,25 +47,6 @@ class ConsultaPropietarioFragment : Fragment() {
             spinner.adapter = adapter
         }
 
-        binding.btnBuscar.setOnClickListener {
-            var busqueda = binding.txtbuscar.text.toString()
-
-            if (busqueda == "") {
-                mostrarTodos()
-            } else {
-                 mostrarFiltro(busqueda,binding.SpConsultasPropietario.selectedItem.toString())
-            }
-        }
-
-        return root
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
-    fun mostrarTodos() {
         baseRemota
             .collection(coleccion1)
             .addSnapshotListener { query, error ->
@@ -90,6 +71,19 @@ class ConsultaPropietarioFragment : Fragment() {
             }
 
         binding.listaConsultaPropietario.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,datalista)
+
+        binding.btnBuscar.setOnClickListener {
+            var busqueda = binding.txtbuscar.text.toString()
+
+            mostrarFiltro(busqueda,binding.SpConsultasPropietario.selectedItem.toString())
+        }
+
+        return root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     fun mostrarFiltro(busqueda:String,filtro:String) {

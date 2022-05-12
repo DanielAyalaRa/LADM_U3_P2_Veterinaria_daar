@@ -55,37 +55,41 @@ class RegistroMascotasFragment : Fragment() {
             spinner.adapter = adapter
         }
 
-        baseRemota
-            .collection(coleccion2)
-            .addSnapshotListener { query, error ->
-                if (error != null) {
-                    //SI HUBO UNA EXCEPCIÓN
-                    mensaje2(error.message!!)
-                    return@addSnapshotListener
-                }
-                datalista.clear()
-                listaId.clear()
-                for (documento in query!!) {
-                    var cadena =
-                        "Nombre: ${documento.getString("nombre")} -- Raza: ${
-                            documento.getString(
-                                "raza"
-                            )
-                        }\nPropietario: ${documento.getString("curp")}"
-                    datalista.add(cadena)
+        try {
+            baseRemota
+                .collection(coleccion2)
+                .addSnapshotListener { query, error ->
+                    if (error != null) {
+                        //SI HUBO UNA EXCEPCIÓN
+                        mensaje2(error.message!!)
+                        return@addSnapshotListener
+                    }
+                    datalista.clear()
+                    listaId.clear()
+                    for (documento in query!!) {
+                        var cadena =
+                            "Nombre: ${documento.getString("nombre")} -- Raza: ${
+                                documento.getString(
+                                    "raza"
+                                )
+                            }\nPropietario: ${documento.getString("curp")}"
+                        datalista.add(cadena)
 
-                    listaId.add(documento.id.toString())
-                }
+                        listaId.add(documento.id.toString())
+                    }
 
-                binding.listaMascotas.adapter = ArrayAdapter<String>(
-                    requireContext(),
-                    android.R.layout.simple_list_item_1,
-                    datalista
-                )
-                binding.listaMascotas.setOnItemClickListener { adapterView, view, indice, l ->
-                    dialogoEliminarActualiza(indice)
+                    binding.listaMascotas.adapter = ArrayAdapter<String>(
+                        requireContext(),
+                        android.R.layout.simple_list_item_1,
+                        datalista
+                    )
+                    binding.listaMascotas.setOnItemClickListener { adapterView, view, indice, l ->
+                        dialogoEliminarActualiza(indice)
+                    }
                 }
-            }
+        } catch (e:Exception) {
+            mensaje("Atencion",e.message!!)
+        }
 
         binding.insertarMascota.setOnClickListener {
             var id = binding.txtcurp.text.toString()
@@ -124,18 +128,17 @@ class RegistroMascotasFragment : Fragment() {
 
     private fun dialogoEliminarActualiza(posicion :Int) {
         var idSeleccionar = listaId.get(posicion)
-        var propietario = Propietario(requireContext())
+        var mascota = Mascota(requireContext())
 
         AlertDialog.Builder(requireContext())
             .setTitle("Atención!!")
             .setMessage("¿QUÉ DESEAS HACER CON\n${datalista.get(posicion)}?")
             .setPositiveButton("ELIMINAR") {d,i ->
-                propietario.eliminar(idSeleccionar)
+                mascota.eliminar(idSeleccionar)
             }
             .setNeutralButton("ACTUALIZAR") {d,i ->
                 val otraVentana = Intent(requireActivity(), ActualizarMascotas::class.java)
                 otraVentana.putExtra("mascotaActualizar", idSeleccionar)
-                otraVentana.putExtra("mascotaCurp", propietario.curp)
                 startActivity(otraVentana)
             }
             .setNegativeButton("CANCELAR") {d,i -> }
