@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">LADM_U3_Practica2_Veterianaria_DanielAyala</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_sobremi">SobreMi</string>
+    <string name="action_salir">Salir</string>
+
+    <string name="menu_home">Inicio</string>
+    <string name="menu_registro_propietario">Registro Propietario</string>
+    <string name="menu_registro_mascotas">Registro Mascotas</string>
+    <string name="menu_consulta_propietario">Consulta Propietario</string>
+    <string name="menu_consulta_mascotas">Consulta Mascotas</string>
+    <string-array name="razas">
+        <item>Perro</item>
+        <item>Gato</item>
+        <item>Conejo</item>
+        <item>Tortuga</item>
+        <item>Gallina</item>
+        <item>Vaca</item>
+        <item>Oveja</item>
+        <item>Ave</item>
+        <item>Pez</item>
+    </string-array>
+
+    <string-array name="buscarProPor">
+        <item>CURP</item>
+        <item>NOMBRE</item>
+        <item>TELEFONO</item>
+        <item>EDAD</item>
+    </string-array>
+
+    <string-array name="buscarMascota">
+        <item>NOMBRE MASCOTA</item>
+        <item>PROPIETARIO(curp)</item>
+        <item>RAZA</item>
+    </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "369038409192",
+    "project_id": "lamdveterinariadaar",
+    "storage_bucket": "lamdveterinariadaar.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:369038409192:android:cad824c8cc2992dc49385d",
+        "android_client_info": {
+          "package_name": "mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "369038409192-p3acs8lsc56hot7kuioi7u2e1cslgqut.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCn_lj1JZAQxk7V7ZfELQ66Y9qZbbpq46E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "369038409192-p3acs8lsc56hot7kuioi7u2e1cslgqut.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.ui.home.HomeFragment"
+        android:label="@string/menu_home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/nav_registro_propietario"
+        android:name="mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.ui.registropropietario.RegistroPropietarioFragment"
+        android:label="@string/menu_registro_propietario"
+        tools:layout="@layout/fragment_registro_propietario" />
+
+    <fragment
+        android:id="@+id/nav_registro_mascotas"
+        android:name="mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.ui.registromascotas.RegistroMascotasFragment"
+        android:label="@string/menu_registro_mascotas"
+        tools:layout="@layout/fragment_registro_mascotas" />
+
+    <fragment
+        android:id="@+id/nav_consulta_propietario"
+        android:name="mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.ui.consultapropietario.ConsultaPropietarioFragment"
+        android:label="@string/menu_consulta_propietario"
+        tools:layout="@layout/consulta_propietario_fragment" />
+
+    <fragment
+        android:id="@+id/nav_consulta_mascotas"
+        android:name="mx.edu.ittepic.daar.ladm_u3_practica1_veterianaria_danielayala.ui.consultamascota.ConsultaMascotaFragment"
+        android:label="@string/menu_consulta_mascotas"
+        tools:layout="@layout/consulta_mascota_fragment" />
+</navigation>

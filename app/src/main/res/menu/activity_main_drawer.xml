@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_menu_gallery"
+            android:title="@string/menu_home" />
+        <item
+            android:id="@+id/nav_registro_propietario"
+            android:icon="@drawable/ic_baseline_account_box_24"
+            android:title="@string/menu_registro_propietario" />
+        <item
+            android:id="@+id/nav_consulta_propietario"
+            android:icon="@drawable/ic_baseline_person_search_24"
+            android:title="@string/menu_consulta_propietario" />
+        <item
+            android:id="@+id/nav_registro_mascotas"
+            android:icon="@drawable/ic_baseline_pets_24"
+            android:title="@string/menu_registro_mascotas" />
+
+        <item
+            android:id="@+id/nav_consulta_mascotas"
+            android:icon="@drawable/ic_baseline_search_24"
+            android:title="@string/menu_consulta_mascotas" />
+    </group>
+</menu>
